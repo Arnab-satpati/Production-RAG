@@ -8,7 +8,7 @@ class OllamaSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="OLLAMA_")
 
     base_url: str = "http://localhost:11434"
-    model: str = "llama3.2:1b"
+    model: str = "llama3.2:3b"
     embedding_model: str = "nomic-embed-text"
     timeout: int = 120
     temperature: float = 0.1
