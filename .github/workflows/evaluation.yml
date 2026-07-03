@@ -1,0 +1,41 @@
+name: Evaluation
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  evaluate:
+    name: RAG Quality Evaluation
+    runs-on: ubuntu-latest
+    services:
+      qdrant:
+        image: qdrant/qdrant:v1.12.1
+        ports:
+          - 6333:6333
+        options: >-
+          --health-cmd "curl -f http://localhost:6333/healthz"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.5"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: uv sync --all-extras
+      - name: Run evaluation
+        run: uv run bash scripts/evaluate.sh
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-results
+          path: logs/evaluation_results.json

@@ -1,0 +1,96 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "RAG System Production Dashboard",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Request Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(rag_requests_total[5m])",
+          "legendFormat": "{{method}} {{endpoint}} {{status}}"
+        }
+      ]
+    },
+    {
+      "title": "Request Latency (p95)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(rag_request_latency_seconds_bucket[5m]))",
+          "legendFormat": "p95 latency"
+        }
+      ]
+    },
+    {
+      "title": "Retrieval Latency",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(rag_retrieval_latency_seconds_bucket[5m]))",
+          "legendFormat": "retrieval p95"
+        }
+      ]
+    },
+    {
+      "title": "Generation Latency",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(rag_generation_latency_seconds_bucket[5m]))",
+          "legendFormat": "generation p95"
+        }
+      ]
+    },
+    {
+      "title": "Chunks Ingested",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum(rag_chunks_ingested_total)",
+          "legendFormat": "total"
+        }
+      ]
+    },
+    {
+      "title": "Guardrails Triggered",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum(rag_guardrails_triggered_total)",
+          "legendFormat": "total"
+        }
+      ]
+    },
+    {
+      "title": "Retrieval Results per Query",
+      "type": "histogram",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
+      "targets": [
+        {
+          "expr": "rag_retrieval_results_count_bucket",
+          "legendFormat": "{{le}}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["rag", "production"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "title": "RAG Production Dashboard",
+  "uid": "rag-production"
+}
