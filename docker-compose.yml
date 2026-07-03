@@ -1,24 +1,26 @@
 services:
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+  ollama:
+    image: ollama/ollama:latest
     ports:
-      - "8000:8000"
+      - "11434:11434"
     volumes:
-      - ./src:/app/src
-      - ./data:/app/data
-      - ./logs:/app/logs
-    env_file:
-      - .env
-    depends_on:
-      qdrant:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - rag-network
     restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   qdrant:
     image: qdrant/qdrant:v1.12.1
@@ -38,62 +40,49 @@ services:
       - rag-network
     restart: unless-stopped
 
-  redis:
-    image: redis:7-alpine
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "6379:6379"
+      - "8000:8000"
     volumes:
-      - redis_data:/data
+      - ./data:/app/data
+    env_file:
+      - .env.docker
+    depends_on:
+      ollama:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 10s
       retries: 5
+      start_period: 20s
     networks:
       - rag-network
     restart: unless-stopped
 
-  mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.16.0
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
-      - "5000:5000"
-    volumes:
-      - mlflow_data:/mlflow
-    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
-    networks:
-      - rag-network
-    restart: unless-stopped
-
-  prometheus:
-    image: prom/prometheus:v2.53.0
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    networks:
-      - rag-network
-    restart: unless-stopped
-
-  grafana:
-    image: grafana/grafana:11.1.0
-    ports:
-      - "3001:3000"
-    volumes:
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
-      - grafana_data:/var/lib/grafana
+      - "3000:3000"
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      RAG_API_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
     networks:
       - rag-network
     restart: unless-stopped
 
 volumes:
+  ollama_data:
   qdrant_data:
-  redis_data:
-  mlflow_data:
-  prometheus_data:
-  grafana_data:
 
 networks:
   rag-network:
