@@ -72,7 +72,9 @@ async def query_rag(request: QueryRequest) -> QueryResponse:
         metrics.record_request("POST", "/api/v1/query", "503", time.perf_counter() - start)
         raise HTTPException(status_code=503, detail=str(e)) from e
     except Exception as e:
-        logger.error("query_failed", error=str(e))
+        import traceback
+        logger.error("query_failed", error=str(e), traceback=traceback.format_exc())
         metrics = get_metrics_collector()
         metrics.record_request("POST", "/api/v1/query", "500", time.perf_counter() - start)
-        raise HTTPException(status_code=500, detail="Internal server error") from e
+        detail = f"Internal server error: {type(e).__name__}: {e}"
+        raise HTTPException(status_code=500, detail=detail) from e

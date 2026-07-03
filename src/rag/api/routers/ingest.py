@@ -10,7 +10,7 @@ from rag.api.models.schemas import IngestRequest, IngestResponse
 from rag.embeddings.service import get_embedding_service
 from rag.ingestion.pipeline import IngestionPipeline
 from rag.monitoring.metrics import get_metrics_collector
-from rag.vectorstore.qdrant import QdrantVectorStore
+from rag.vectorstore.qdrant import get_vector_store
 
 router = APIRouter(prefix="/api/v1", tags=["ingest"])
 logger = structlog.get_logger(__name__)
@@ -32,7 +32,7 @@ async def ingest_text(request: IngestRequest) -> IngestResponse:
         embedding_service = get_embedding_service()
         embeddings = await embedding_service.aembed([c.content for c in chunks])
 
-        vector_store = QdrantVectorStore()
+        vector_store = get_vector_store()
         vector_store.ensure_collection()
         count = vector_store.upsert(chunks, embeddings)
 
@@ -72,7 +72,7 @@ async def ingest_file(file: UploadFile = File(...)) -> IngestResponse:  # noqa: 
         embedding_service = get_embedding_service()
         embeddings = await embedding_service.aembed([c.content for c in chunks])
 
-        vector_store = QdrantVectorStore()
+        vector_store = get_vector_store()
         vector_store.ensure_collection()
         count = vector_store.upsert(chunks, embeddings)
 
@@ -116,7 +116,7 @@ async def ingest_directory(request: IngestRequest) -> IngestResponse:
         embedding_service = get_embedding_service()
         embeddings = await embedding_service.aembed([c.content for c in chunks])
 
-        vector_store = QdrantVectorStore()
+        vector_store = get_vector_store()
         vector_store.ensure_collection()
         count = vector_store.upsert(chunks, embeddings)
 

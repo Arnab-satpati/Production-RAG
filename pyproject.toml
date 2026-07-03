@@ -45,6 +45,9 @@ dev = [
     "pre-commit>=3.8.0",
 ]
 
+[project.scripts]
+rag-api = "rag.api.__main__:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

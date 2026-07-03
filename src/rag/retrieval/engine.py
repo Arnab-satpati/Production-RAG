@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -8,7 +9,7 @@ import structlog
 
 from rag.config.settings import get_settings
 from rag.embeddings.service import EmbeddingService, get_embedding_service
-from rag.vectorstore.qdrant import QdrantVectorStore
+from rag.vectorstore.qdrant import QdrantVectorStore, get_vector_store
 
 logger = structlog.get_logger(__name__)
 
@@ -29,7 +30,7 @@ class RetrievalEngine:
         embedding_service: EmbeddingService | None = None,
     ) -> None:
         self._settings = get_settings().retrieval
-        self._vector_store = vector_store or QdrantVectorStore()
+        self._vector_store = vector_store or get_vector_store()
         self._embedding_service = embedding_service or get_embedding_service()
 
     async def retrieve(
@@ -45,7 +46,8 @@ class RetrievalEngine:
         start = time.perf_counter()
         query_embedding = await self._embedding_service.aembed_single(query)
 
-        hits = await self._vector_store.search(
+        hits = await asyncio.to_thread(
+            self._vector_store.search,
             query_embedding=query_embedding,
             top_k=k,
             filter_source=filter_source,

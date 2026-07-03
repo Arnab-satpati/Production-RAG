@@ -6,7 +6,7 @@ from rag import __version__
 from rag.api.models.schemas import CollectionInfoResponse, HealthResponse
 from rag.config.settings import get_settings
 from rag.generation.llm import LLMService
-from rag.vectorstore.qdrant import QdrantVectorStore
+from rag.vectorstore.qdrant import get_vector_store
 
 router = APIRouter(tags=["system"])
 
@@ -24,7 +24,7 @@ async def health_check() -> HealthResponse:
         services["ollama"] = "unreachable"
 
     try:
-        vs = QdrantVectorStore()
+        vs = get_vector_store()
         vs.ensure_collection()
         services["qdrant"] = "healthy"
     except Exception:
@@ -43,7 +43,7 @@ async def health_check() -> HealthResponse:
 
 @router.get("/collection", response_model=CollectionInfoResponse)
 async def collection_info() -> CollectionInfoResponse:
-    vs = QdrantVectorStore()
+    vs = get_vector_store()
     vs.ensure_collection()
     info = vs.get_collection_info()
     return CollectionInfoResponse(**info)

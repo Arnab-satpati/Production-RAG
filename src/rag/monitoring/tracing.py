@@ -9,10 +9,11 @@ def setup_tracing(service_name: str = "rag-production") -> None:
     try:
         from opentelemetry import trace
         from opentelemetry.sdk.trace import TracerProvider
-        from opentelemetry.sdk.trace.export import BatchSpanProcessor
+        from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 
         provider = TracerProvider()
-        processor = BatchSpanProcessor()
+        exporter = ConsoleSpanExporter()
+        processor = BatchSpanProcessor(exporter)
         provider.add_span_processor(processor)
         trace.set_tracer_provider(provider)
 

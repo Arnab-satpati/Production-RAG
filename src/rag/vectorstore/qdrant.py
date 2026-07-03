@@ -21,6 +21,15 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger(__name__)
 
+_vector_store_instance: QdrantVectorStore | None = None
+
+
+def get_vector_store() -> QdrantVectorStore:
+    global _vector_store_instance
+    if _vector_store_instance is None:
+        _vector_store_instance = QdrantVectorStore()
+    return _vector_store_instance
+
 
 class QdrantVectorStore:
     def __init__(self) -> None:
@@ -29,16 +38,20 @@ class QdrantVectorStore:
 
     def _get_client(self) -> QdrantClient:
         if self._client is None:
-            self._client = QdrantClient(
-                host=self._settings.host,
-                port=self._settings.port,
-                grpc_port=self._settings.grpc_port,
-            )
-            logger.info(
-                "qdrant_connected",
-                host=self._settings.host,
-                port=self._settings.port,
-            )
+            if self._settings.local_mode:
+                self._client = QdrantClient(":memory:")
+                logger.info("qdrant_in_memory_mode")
+            else:
+                self._client = QdrantClient(
+                    host=self._settings.host,
+                    port=self._settings.port,
+                    grpc_port=self._settings.grpc_port,
+                )
+                logger.info(
+                    "qdrant_connected",
+                    host=self._settings.host,
+                    port=self._settings.port,
+                )
         return self._client
 
     def ensure_collection(self) -> None:
@@ -104,16 +117,16 @@ class QdrantVectorStore:
                 must=[FieldCondition(key="source", match=MatchValue(value=filter_source))],
             )
 
-        results = client.search(
+        results = client.query_points(
             collection_name=self._settings.collection,
-            query_vector=query_embedding,
-            limit=top_k,
+            query=query_embedding,
             query_filter=query_filter,
+            limit=top_k,
             score_threshold=score_threshold,
         )
 
         hits = []
-        for hit in results:
+        for hit in results.points:
             hits.append(
                 {
                     "id": str(hit.id),

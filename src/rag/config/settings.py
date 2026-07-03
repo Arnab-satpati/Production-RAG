@@ -8,7 +8,7 @@ class OllamaSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="OLLAMA_")
 
     base_url: str = "http://localhost:11434"
-    model: str = "llama3.1:8b"
+    model: str = "llama3.2:1b"
     embedding_model: str = "nomic-embed-text"
     timeout: int = 120
     temperature: float = 0.1
@@ -23,6 +23,8 @@ class QdrantSettings(BaseSettings):
     grpc_port: int = 6334
     collection: str = "rag_documents"
     embedding_dim: int = 768
+    local_mode: bool = True
+    local_path: str = "data/qdrant_storage"
 
 
 class RedisSettings(BaseSettings):

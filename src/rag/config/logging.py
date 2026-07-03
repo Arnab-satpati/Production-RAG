@@ -12,7 +12,6 @@ def setup_logging(log_level: str = "INFO") -> None:
         structlog.processors.StackInfoRenderer(),
         structlog.dev.set_exc_info,
         structlog.processors.TimeStamper(fmt="iso"),
-        structlog.processors.JSONRenderer(),
     ]
 
     structlog.configure(
@@ -29,7 +28,7 @@ def setup_logging(log_level: str = "INFO") -> None:
     formatter = structlog.stdlib.ProcessorFormatter(
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-            structlog.processors.JSONRenderer(),
+            structlog.dev.ConsoleRenderer(),
         ],
     )
 
