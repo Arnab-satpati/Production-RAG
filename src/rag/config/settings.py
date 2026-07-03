@@ -55,7 +55,7 @@ class RetrievalSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="RETRIEVAL_")
 
     top_k: int = 5
-    similarity_threshold: float = 0.7
+    similarity_threshold: float = 0.4
     rerank_top_k: int = 3
 
 
