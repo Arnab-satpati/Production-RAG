@@ -7,11 +7,13 @@ build/
 .eggs/
 
 .env
+.env.local
 .venv/
 venv/
 env/
 
 data/uploads/
+data/qdrant_storage/
 logs/
 *.log
 
@@ -30,3 +32,8 @@ mlruns/
 
 .DS_Store
 Thumbs.db
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.vercel/
